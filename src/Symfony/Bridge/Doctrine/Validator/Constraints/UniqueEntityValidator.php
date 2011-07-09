@@ -65,7 +65,11 @@ class UniqueEntityValidator extends ConstraintValidator
                 throw new ConstraintDefinitionException("Only field names mapped by Doctrine can be validated for uniqueness.");
             }
 
-            $criteria[$fieldName] = $class->reflFields[$fieldName]->getValue($entity);
+            $value = $class->reflFields[$fieldName]->getValue($entity);
+            
+            if ($value) {
+	            $criteria[$fieldName] = $value;
+            }
         }
 
         $repository = $em->getRepository($className);
@@ -74,7 +78,7 @@ class UniqueEntityValidator extends ConstraintValidator
         if (count($result) > 0 && $result[0] !== $entity) {
             $oldPath = $this->context->getPropertyPath();
             $this->context->setPropertyPath( empty($oldPath) ? $fields[0] : $oldPath.".".$fields[0]);
-            $this->context->addViolation($constraint->message, array(), $criteria[$fields[0]]);
+            $this->context->addViolation($constraint->message, array(), reset($criteria));
             $this->context->setPropertyPath($oldPath);
         }
 
